@@ -1,0 +1,38 @@
+getwd()
+setwd("C:/Users/user/Desktop")
+dum <- read.csv("dummy.csv", header = T, stringsAsFactors = F)
+ko <- NULL
+ameri <- NULL
+for (i in 1:nrow(dum)){
+  if (dum[i, 3] == "한국")
+    ko <- append(ko, 1)
+  else
+    ko <- append(ko, 0)
+  if (dum[i, 3] == "미국")
+    ameri <- append(ameri, 1)
+  else
+    ameri <- append(ameri, 0)
+}
+Nation <- cbind(ko, ameri)
+
+
+dum <- read.csv("dummy.csv", header = T, stringsAsFactors = F)
+genre_df <- NULL
+x <- c("액션", "어드벤처", "범죄", "스릴러")
+for (x_genre in x){
+  col <- NULL
+  for (i in 1:nrow(dum)){
+    gen <- unlist(strsplit(dum[i, 2], ","))
+    gen <- gsub(",", "", gen)
+    wh <- which(gen == x_genre)
+    if (length(wh) == 1)
+      col <- append(col, 1)
+    else
+      col <- append(col, 0)
+  }
+  genre_df <- cbind(genre_df, col)
+}
+colnames(genre_df) <- x
+genre_df
+
+gra <- model.matrix(~ grade, data=dum)[,-1]

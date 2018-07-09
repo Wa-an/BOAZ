@@ -1,0 +1,55 @@
+getwd()
+setwd("C:/Users/user/Desktop")
+movie_df <- read.csv("movie_data.csv", header = T, stringsAsFactors = F)
+str(movie_df)
+
+
+lm_movie_df <- movie_df[,-1] # -1의 이유 : title은 회귀분석에서 필요없기 때문
+#모델생성
+model <- lm(first_week_audience ~ lm_movie_df$first_day_screen+lm_movie_df$drama
+               , data = lm_movie_df) # first_day_screen 과 drama를 설명변수로 사용
+model <- lm(first_week_audience~., data = lm_movie_df)
+model
+
+#다중공선성 확인
+vif(model)
+library(corrplot)
+corr_mat <- cor(movie_df[,3:ncol(movie_df)])
+corrplot(corr_mat)
+
+#잔차그래프
+summary(lm_model2)
+par(mfrow=c(2,2))
+plot(model)
+
+#Standardlized residuals의 루트 값이 3이상인 점들을 찾고 제거
+outlier.test(model2)
+out_movie_df <- lm_movie_df[c(-571,-569,-459,-549,-532),]
+
+#모델생성
+model <- lm(first_week_audience~., data = out_movie_df)
+model
+summary(model)
+par(mfrow=c(2,2))
+plot(model)
+
+
+#boxcox변환 : 정규성이 만족하지 않을때, 독립변수를 transform시켜서 변환
+library(MASS)
+bc <- boxcox(model)
+lambda <- bc$x[which.max(bc$y)]
+full_model <- lm(first_week_audience^lambda ~ . , data = out_movie_df)
+summary(full_model)
+plot(full_model)
+
+#QQ plot 설명
+
+#최종모델생성
+reduced_model <- step(full_model, direction = "backward") #forward, stepwise
+
+#test
+test_df <- read.csv("test_data.csv", header=T)
+value <- test_df[2] #실제 test data값 저장
+test_df <- test_df[,c(-1,-2)]
+pred <- predict(reduced_model, test_df)^(1/lambda)
+result <- cbind(value, pred)
