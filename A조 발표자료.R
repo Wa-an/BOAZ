@@ -1,181 +1,198 @@
-##############Generalized Linear Model####################
-#GLMì€ ì„ í˜•í™”ê°€ ì–´ë ¤ìš´ ìë£Œë“¤ì„ ì„ í˜•í™”ì‹œí‚¤ëŠ” ì‘ì—…
-#ì—¬ëŸ¬ ëª¨í˜•ë“¤(gaussian,poisson ë“±)ì´ ìˆì§€ë§Œ ê°€ì¥ ëŒ€í‘œì ì¸ ë°©ë²•ì´ ë¡œì§€ìŠ¤í‹± íšŒê·€ë¶„ì„(yê°’ì´ ë²”ì£¼í˜•ì¼ ë•Œ ì„ í˜•í™”í•˜ì—¬ ë¶„ë¥˜ë¥¼ í•  ë•Œ ì‚¬ìš©)
-#ì‹¤ìŠµë„ ë¡œì§€ìŠ¤í‹±íšŒê·€ë¶„ì„ìœ¼ë¡œ ì§„í–‰
+install.packages("MASS") # µ¥ÀÌÅÍ°¡ µé¾îÀÖ´Â ÆĞÅ°Áö
+install.packages("caret") # µ¥ÀÌÅÍ ÁØºñ°úÁ¤¿¡ »ç¿ë
+install.packages("neuralnet") # ½Å°æ¸Á ¸ğÇü ±¸Ãà¿¡ »ç¿ë
+install.packages("vcd") # µ¥ÀÌÅÍ ½Ã°¢È­¿¡ »ç¿ë
 
-#1. ë°ì´í„° ë¶ˆëŸ¬ì˜¤ê¸°(UCLAë°ì´í„° ì°¸ì¡°)
-#ëª©í‘œ:ê³ ë“±í•™êµ GRE, GPA, RANKê°€ ì…í•™(admission)ì— ì–´ë–¤ ì˜í–¥ì„ ì£¼ëŠ”ì§€ ë¡œì§€ìŠ¤í‹± íšŒê·€ë¶„ì„ì„ í†µí•´ ë¶„ì„í•œë‹¤.
-data <- read.csv("https://stats.idre.ucla.edu/stat/data/binary.csv")
-str(data)
-head(data)
-
-#2. ì ì ˆí•œ ë³€ìˆ˜ ì„¤ì •
-#ë°˜ì‘(ì¢…ì†)ë³€ìˆ˜(Yê°’)ëŠ” ì…í•™ì—¬ë¶€ì´ë¯€ë¡œ admitì´ê³ , ë‚˜ë¨¸ì§€ê°€ ì„¤ëª…ë³€ìˆ˜ë¼ê³  í•  ìˆ˜ ìˆëŠ”ë°
-#1ë²ˆ ë‹¨ê³„ì—ì„œ str ê²°ê³¼ë¥¼ ë³´ë©´ rankë³€ìˆ˜ê°€ 4ê°œì˜ ë³€ìˆ˜ê°€ ì•„ë‹ˆê³  intë¡œ ì„¤ì •ë˜ì–´ í•˜ë‚˜ì˜ ë³€ìˆ˜ë¡œ í•´ì„í•˜ê³  ìˆê¸° ë•Œë¬¸ì— 
-#ë¶„ì„ì— ë“¤ì–´ê°€ê¸° ì „ì— rankë¥¼  factorë¡œ ë³€ê²½ì‹œì¼œì¤€ë‹¤.
-data$rank <-as.factor(data$rank)
-str(data)
-
-#3. ë¡œì§€ìŠ¤í‹± íšŒê·€ë¶„ì„ ë° í•´ì„
-#ì„ í˜•í™” ì‘ì—…ì—ëŠ” â€œglmâ€ í•¨ìˆ˜ë¥¼ ì‚¬ìš©í•˜ëŠ”ë°, ì„ í˜• íšŒê·€ë¶„ì„ì—ì„œì˜ â€œlmâ€ê³¼ ìœ ì‚¬í•œ í•¨ìˆ˜ë¼ê³  ë³´ë©´ ëœë‹¤.
-#ë¡œì§€ìŠ¤í‹± íšŒê·€ë¶„ì„ì„ í•˜ë ¤ë©´ familyê°’ì— binomialì„ ë„£ì–´ì£¼ë©´ ë˜ë©°, yê°’ì˜ ë²”ì£¼ëŠ” 2ê°œì—¬ì•¼ë§Œ í•œë‹¤.
-model <- glm(admit ~ gre + gpa + rank, data =data, family = "binomial")
-summary(model)
-confint(model) #ë¡œê·¸ê°€ëŠ¥ë„ë¡œ êµ¬í•œ ì‹ ë¢°êµ¬ê°„, ì¼ë°˜ì ê°„
-confint.default(model) #íšŒê·€ê³„ìˆ˜ì˜ í‘œì¤€í¸ì°¨ë¡œ êµ¬í•œ ì‹ ë¢°êµ¬ê°€
-  #ìœ ì˜ìˆ˜ì¤€ 0.05ë¡œ í™•ì¸í•˜ë©´ìœ„ ê²°ê³¼ì—ì„œëŠ” ëª¨ë“  ë³€ìˆ˜ê°€ ìœ ì˜í•œ ê²ƒì„ ì•Œ ìˆ˜ ìˆë‹¤. 
-  #CoefficientëŠ” ë¡œì§€ìŠ¤í‹± íšŒê·€ëª¨í˜•ì—ì„œ íšŒê·€ê³„ìˆ˜ê°€ ë³€ìˆ˜ê°€ í•œ ë‹¨ìœ„ ì¦ê°€í–ˆì„ ë•Œ log(odds)ì˜ ì¦ê°€ëŸ‰ìœ¼ë¡œ í•´ì„í•  ìˆ˜ ìˆë‹¤.
-  #ex)greê°€ 1ì¦ê°€í•  ë•Œ, admissionì˜ log odds(non-admissionì— ëŒ€í•œ)ê°€ 0.0022 ì¦ê°€í•œë‹¤.
-
-#4. anova ë¶„ì„ ë° R-Squaredê°’ í™•ì¸
-anova(model, test="Chisq") 
-  #yê°€ ë²”ì£¼í˜•ì´ë¯€ë¡œ ì¹´ì´ìŠ¤í€˜ì–´ ë¶„ì„ ì‹¤ì‹œ
-  #Resid.Devê°’ì´ ë§ì´ í•˜ë½ í•  ìˆ˜ë¡ ì˜ë¯¸ìˆëŠ” ë³€ìˆ˜ì´ë©°, ê·¸ ê°’ì´ ì‘ì•„ ì§ˆ ìˆ˜ë¡ ëª¨ë¸ì˜ ì„±ëŠ¥ì´ ì¢‹ì•„ì§„ë‹¤.
-  #í•´ë‹¹ ë³€ìˆ˜ê°€ í•˜ë‚˜ì”© í¬í•¨ ë  ë•Œë§ˆë‹¤ Resid.Devê°’ìœ¼ë¡œ ëª¨ë¸ì˜ ì„±ëŠ¥ì´ ì–¼ë§ˆë‚˜ ë‚˜ì•„ì§€ëŠ” ì§€ í™•ì¸ ê°€ëŠ¥
-  #rankë³€ìˆ˜ê°€ í¼í•  ë  ë•Œ Devê°’ì´ ê°€ì¥ ë§ì´ í•˜ë½í•œ ê²ƒì„ ì•Œ ìˆ˜ ìˆë‹¤.
-install.packages("pscl")
-library(pscl)
-pR2(model)
-  #ë¡œì§€ìŠ¤í‹± íšŒê·€ë¶„ì„ì—ë„ ì„ í˜• íšŒê·€ ë¶„ì„ì—ì„œì˜ R2ì™€ ìœ ì‚¬í•œ ê°œë…ì´ ì¡´ì¬í•œë‹¤. Mcfadden R2ìœ¼ë¡œ ëª¨ë¸ fitì„ í™•ì¸ê°€ëŠ¥í•˜ë‹¤.
-  #â€œpsclâ€ íŒ¨í‚¤ì§€ì˜ pR2 í•¨ìˆ˜ë¥¼ ì‚¬ìš©í•˜ì—¬ Mcfadden R2()ë¥¼ ì•Œì•„ë³¼ ìˆ˜ ìˆë‹¤.
-  #ë¡œì§€ìŠ¤í‹± íšŒê·€ë¶„ì„ì—ì„œ R2ê°’ì€ ëŒ€ê°œ ë‚®ê²Œ ë‚˜ì˜¤ëŠ” í¸ì´ë¯€ë¡œ, ëª¨í˜•í‰ê°€ì—ì„œ R2ì— ë„ˆë¬´ ì˜ì¡´í•  í•„ìš”ëŠ” ì—†ë‹¤
-
-#5. ì˜¤ì¦ˆë¹„ ê³„ì‚° ë° ì˜ˆì¸¡
-exp(coef(model))  #ì˜¤ì¦ˆë¹„ ì‚°ì¶œ
-exp(confint(model))  #ì˜¤ì¦ˆë¹„ì— ëŒ€í•œ 95% ì‹ ë¢°êµ¬ê°„
-newdata<- with(data, data.frame(gre = mean(gre), gpa = mean(gpa), rank = factor(1:4)))
-newdata
-newdata$rankP <- predict(model, newdata = newdata, type = "response") 
-newdata
-  #greì™€ gpaê°€ í‰ê· ìˆ˜ì¤€ì¼ ë•Œ, rankì— ë”°ë¼ í•©ê²©ë¥ ì´ ì–¼ë§ˆë‚˜ ë‹¤ë¥¸ì§€ í™•ì¸ê°€ëŠ¥
-
-#6. ëª¨ë¸ í‰ê°€
-install.packages("ROCR")
-library(ROCR)
-
-p <- predict(model, newdata=data, type="response")
-pr <- prediction(p, data$admit)
-prf <- performance(pr, measure = "tpr", x.measure = "fpr")
-plot(prf)
-  #ROCê³¡ì„ ì€ ë¡œì§€ìŠ¤í‹± íšŒê·€ëª¨í˜•ê³¼ ê°™ì´ ë°˜ì‘ê°’ì´ ë²”ì£¼í˜•ì¸ ëª¨ë¸ì„ í‰ê°€í•  ë•Œ ì‚¬ìš©,
-  #ê·¸ë˜í”„ê°€ ì™¼ìª½ ìƒë‹¨ì— ê°€ê¹Œìš¸ìˆ˜ë¡ ì¢‹ì€ ëª¨ë¸
-auc <- performance(pr, measure = "auc")
-auc <- auc@y.values[[1]]
-auc
-  #AUCëŠ” ROCê·¸ë˜í”„ ì•„ë˜ì˜ì—­ì˜ ë„“ì´ì´ë‹¤. 1ì— ê°€ê¹Œìš¸ìˆ˜ë¡ ì¢‹ì€ ëª¨ë¸ì´ë©°, 
-  #íŒë‹¨ ê¸°ì¤€ì€ ëŒ€ëµì ìœ¼ë¡œ excellent =  0.9~1, good = 0.8~0.9, fair = 0.7~0.8
-  #poor = 0.6~0.7, fail = 0.5~0.6 ì´ë ‡ê²Œ ë˜ê² ë‹¤.
-  #AUCê°’ì´ ì¢‹ì§€ ì•Šìœ¼ë¯€ë¡œ ì¢‹ì€ ëª¨ë¸ì´ë¼ê³  í•  ìˆ˜ ì—†ë‹¤.
-
-
-#####################Regularization####################
-#ì •ê·œí™”ëŠ” ìµœì ì˜ ì„ í˜•ëª¨í˜•ì„ ì°¾ì„ ë•Œ ì‚¬ìš©
-rm(list=ls())
-install.packages("glmnet")
-install.packages("MASS")
-install.packages("mlbench")
-
-library(MASS) #glm 
-library(mlbench) #Sonarë°ì´í„° ì‚¬ìš© ìœ„í•˜ì—¬
-
-#1. ë°ì´í„° ë¶ˆëŸ¬ì˜¤ê¸°(Sonar-ìˆ˜ì¤‘ ìŒíŒŒ íƒì§€ê¸° ì‹ í˜¸ ë¶„ë¥˜ ë°ì´í„°)
-data(Sonar)
-str(Sonar)
-?Sonar
-head(Sonar)
-  # 61ê°œì˜ ë³€ìˆ˜ë¡œ ì´ë£¨ì–´ì§„ 208ê°œì˜ ë°ì´í„°
-  # v1~v60ì˜ ì„¤ëª…ë³€ìˆ˜ëŠ” ì—°ì†í˜•ë³€ìˆ˜
-  # But, ì¢…ì†ë³€ìˆ˜ ClassëŠ” M, R ì´ 2ê°œì˜ ë²”ì£¼ë¡œ ì´ë£¨ì–´ì§„ ë²”ì£¼í˜•ë³€ìˆ˜
-
-#2. ë³€ìˆ˜ì„¤ì •
-Sonar$Class<-as.character(Sonar$Class)
-Sonar$Class[Sonar$Class=="M"]<-1
-Sonar$Class[Sonar$Class=="R"]<-0
-Sonar$Class<-as.numeric((Sonar$Class))
-str(Sonar)
-  # ë²”ì£¼í˜• ì¢…ì†ë³€ìˆ˜ Classì— ëŒ€í•´ Class=Mì´ë©´ 1, Class=Rì´ë©´ 0ìœ¼ë¡œ ë³€í™˜
-  # Classë¥¼ ì œì™¸í•œ ë‹¤ë¥¸ ë³€ìˆ˜ëŠ” ëª¨ë‘ ì—°ì†í˜•ë³€ìˆ˜ì´ë¯€ë¡œ ë²”ì£¼í˜•ë³€ìˆ˜ ê°„ì˜ ë…ë¦½ì„±ê²€ì •ì€ ì‹œí–‰í•˜ì§€ ì•ŠìŒ
-  # ë³€ìˆ˜ Classë¥¼ ìˆ«ìë³€ìˆ˜ë¡œ ì „í™˜í•œ í›„ ëª¨ë“  ë³€ìˆ˜ê°€ ìˆ«ì ë³€ìˆ˜ì¸ ê²ƒì„ í™•ì¸
-
-#3. ë¡œì§€ìŠ¤í‹± íšŒê·€ë¶„ì„
-x = as.matrix(Sonar[,-61])
-  #xë¥¼ ê´€ì¸¡ê°’(í–‰ë ¬ í˜•íƒœ)ìœ¼ë¡œ ì €ì¥
-y = rep(1, nrow(Sonar))
-  #yë¥¼ ë¶„ë¥˜ëœ ê°’(ì¦‰, Rì´ë©´ 0, Mì´ë©´ 1)ìœ¼ë¡œ ì €ì¥
-y[which(Sonar[,61]=="R")] = 0
-fit.glm = glm(Class~., data=Sonar,family='binomial') 
-  # Warning messages:
-  # 1: glm.fit: ì•Œê³ ë¦¬ì¦˜ì´ ìˆ˜ë ´í•˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤ 
-  # 2: glm.fit: ì í•©ëœ í™•ë¥ ê°’ë“¤ì´ 0 ë˜ëŠ” 1 ì…ë‹ˆë‹¤ 
-fit.glm$coef #ê³„ìˆ˜ê°€ ë§¤ìš° í¬ë‹¤.
-  #ì •ë§ ê³¼ì í•© ë˜ì—ˆëŠ”ê°€?
-fit.glm$fitted.values
-sum((fit.glm$fitted.values > 0.5) == y ) 
-  # ë³€ìˆ˜ 60ê°œì— ëŒ€í•˜ì—¬ 208ê°œ ëª¨ë‘ ì™„ë²½í•˜ê²Œ ë¶„ë¥˜ë¨ -> overfitting ì˜ì‹¬ 
-V<-paste("V",1:60,sep="")
-VV<-paste("Class ~", paste(V,collapse = "+"))
-  # ROC plotì„ ê·¸ë¦¬ê¸° ìœ„í•´ Class~V1+V2+...+V60  í˜•íƒœë¥¼ ë§Œë“¤ì–´ì¤Œ
-install.packages("pROC")
-library(pROC)
-par(mfrow=c(1,2))
-roc(as.formula(VV),data=Sonar,plot=T)
-  # ROC plotì´ ì§ì„ ì— ê°€ê¹Œìš´ ê²ƒìœ¼ë¡œ ë³´ì•„ logistic regressionì´ ì í•©í•˜ì§€ ì•Šë‹¤ê³  íŒë‹¨í•  ìˆ˜ ìˆìŒ
-
-#4. regularization ì‘ì—… ì§„í–‰ - glmnet íŒ¨í‚¤ì§€ ì‚¬ìš©
-#glmnet packageì— ëŒ€í•œ ì°¸ê³  ì‚¬ì´íŠ¸
-#https://cran.r-project.org/web/packages/glmnet/glmnet.pdf
-library(glmnet)
-?glmnet
-
-#4-1.Ridge : ê°€ì¤‘ì¹˜ë“¤ì˜ ì œê³±í•©ì„ ìµœì†Œí™”
-Sonar$Class<-as.factor(Sonar$Class) 
-  # ëŠ¥í˜•íšŒê·€ë¥¼ ì´ìš©í•˜ê¸° ìœ„í•œ ì¢…ì†ë³€ìˆ˜ì˜ ë²”ì£¼í™”
-set.seed(0205)
-index<-sample(1:length(Sonar[,1]),length(Sonar[,1])*0.7,F)
-train<-Sonar[index,]
-test<-Sonar[-index,]
-  # Sonar ë°ì´í„°ë¥¼ 7:3ì˜ ë¹„ìœ¨ë¡œ train setê³¼ test setìœ¼ë¡œ ëœë¤ ë¶„ë¥˜í•¨
-reg.ridge<-cv.glmnet(x=data.matrix(train[,-61]),y= data.matrix(train[,61]),family = "binomial", alpha = 0,nfold=10)
-  # train set ë°ì´í„°ì— ëŒ€í•œ ëŠ¥í˜•íšŒê·€ ë¶„ì„ ì‹¤í–‰
-  # ì¢…ì†ë³€ìˆ˜ y: Class = train[,61]
-coef(reg.ridge)
-# logistic regressionì— ë¹„í•´ ì¶”ì •ëœ ë² íƒ€ê³„ìˆ˜ê°€ í˜„ì €íˆ ì‘ì•„ì§
-par(mfrow=c(1,1))
-plot(reg.ridge)
-reg.ridge$lambda.min
-  # cv errorë¥¼ ìµœì†Œí™”í•˜ëŠ” lambdaê°’ = 0.140766
-pred.ridge<-predict(reg.ridge,data.matrix(test[,-61]),s= reg.ridge$lambda.min,type="class")
-table(Actual= test[,61],Predicted = pred.ridge)
-  # (0,0)ê³¼ (1,1)ì´ ê°ê° 23, 28ì´ë¯€ë¡œ ì˜ˆì¸¡ì´ ì˜ ì§„í–‰ë˜ì—ˆìŒ í™•ì¸ ê°€ëŠ¥
-# Accuracy í™•ì¸
-install.packages("caret")
 library(caret)
-confusionMatrix(pred.ridge,test$Class)
-  #ì •í™•ë„ ê³„ì‚°í•˜ëŠ” 
-  # Accuracy = 80.95%
+library(MASS)
+library(neuralnet)
+library(vcd)
+
+data(shuttle)
+str(shuttle) # µ¥ÀÌÅÍ ±¸Á¶º¸±â
+
+# µ¥ÀÌÅÍ 256°³ °üÂû°ª, 7°³ÀÇ º¯¼ö
+# ¸ğµç º¯¼ö ¹üÁÖÇü, ¹İÀÀº¯¼ö´Â ÀÚµ¿°ú ºñÀÚµ¿ 2°³ÀÇ ¼öÁØÀ» °®°í ÀÖÀ½
+# Stability : ¾ÈÁ¤ÀûÀÎ À§Ä¡ ¿©ºÎ
+# error : ¿ÀÂ÷ÀÇ Å©±â 
+# sign : ¿ÀÂ÷ÀÇ ºÎÈ£, ¾ç ¶Ç´Â À½
+# wind : ¹Ù¶÷¹æÇâ
+# magn : ¹Ù¶÷ÀÇ °­µµ
+# vis : °¡½Ã¼º
+
+
+table(shuttle$use) # °ÅÀÇ 57%·Î ÀÚÁÖ, ÀÚµ¿Âø·ú ±â´ÉÀ» »ç¿ëÇÏ¶ó´Â °áÁ¤ÀÌ ³»·ÁÁü/ Auto:145 Nonauto: 111
+table1<-structable(wind+magn~use,shuttle)
+table1
+# °­µµ°¡ lightÀÎ ¿ªÇ³(headwind)ÀÇ °æ¿ì¿¡´Â °¢°¢ auto°¡ 19¹ø, noauto°¡ 13¹ø ÀÏ¾î³µÀ½
+
+# vcd ÆĞÅ°Áö¿¡´Â mosaic ÇÔ¼ö ÀÖÀ½, structableÇÔ¼ö·Î »ı¼ºÇÑ Ç¥ ±×·ÁÁÖ°í, Ä«ÀÌÁ¦°ö °ËÁ¤À» À§ÇÑ À¯ÀÇÈ®·ü Á¦°øÇÔ
+mosaic(table1,shade=T)
+# mosaic function -> ´Ùº¯·® º¯¼ö, ¹üÁÖÇü µ¥ÀÌÅÍ
+# À¯ÀÇÈ®·üÀÌ 0.99844·Î À¯ÀÇÇÏÁö ¾Ê°Ô ³ªÅ¸³µÀ¸¹Ç·Î º¯¼öµéÀº µ¶¸³ÀÌ¸ç, ÀÌ´Â ¹Ù¶÷ÀÇ ¹æÇâÀÌ³ª ¼¼±â¸¦ ¾Ë¾Æµµ 
+# ÀÚµ¿Âø·úÀ» ½á¾ß ÇÒÁö ¿¹ÃøÇÏ´Âµ¥ µµ¿òÀÌ µÇÁö ¾Ê´Â´Ù´Â °ÍÀ» ÀÇ¹ÌÇÑ´Ù.
+
+mosaic(use~error+vis,shuttle,gp=gpar(fill=c("yellow", "blue")), direction="v")
+# »ç°¢ÇüÀÌ µÎ°¡Áö À½¿µÀ¸·Î Ç¥½Ã / ±Í¹«°¡¼³ÀÇ ±â°¢°ú º¯¼öÀÇ Á¾¼Ó¼ºÀÌ ¹İ¿µµÇ¾î ÀÖÀ½
+# µµÇ¥´Â °¡½Ã¼ºÀ» ¹Ş¾Æ Á¾ÃàÀ¸·Î ÂÉ°·
+# if, °¡½Ã¼ºÀÌ noÀÌ¸é ÀÚµ¿Âø·úÀ» »ç¿ëÇÔ
+# ±×¸²¿¡¼­ ¿ŞÂÊ¿¡ À§Ä¡ÇÑ vis°¡ noÀÎ ¿­Àº ¸ğµÎ ¹àÀº È¸»öÀ¸·Î auto¸¦ »ç¿ëÇÔ
+# ±× ´ÙÀ½, È¾Ãà¹æÇâÀ¸·Î ¿À·ù¸¦ ÂÉ°·
+# if, vis°¡ yesÀÏ ¶§, error°¡ SS ¶Ç´Â MMÀÌ¸é ÀÚµ¿Âø·úÀ» ÃßÃµÇÒ ¼ö ÀÖÀ½ 
+# Áï, auto¸¦ ³ªÅ¸³»´Â ºÎºĞÀº ¹àÀº È¸»ö / È¸»öÀ¸·Î Ä¥ÇØÁø ºÎºĞÀÌ À¯ÀÇ¼öÁØÀ» ³ªÅ¸³¿ -> p-value µû·Î Ç¥½Ã ÇÒ ÇÊ¿ä ¾øÀ½
+
+table(shuttle$use,shuttle$stability)
+prop.table(table(shuttle$use,shuttle$stability)) # tableÀ» ºñÀ²·Î ³ªÅ¸³¾ ¼ö ÀÖ¤·
+
+chisq.test(shuttle$use,shuttle$stability) # Ä«ÀÌÁ¦°ö°ËÁ¤
+
+# ½Å°æ¸ÁÀ» À§ÇÑ µ¥ÀÌÅÍ ÁØºñ°úÁ¤¿¡¼­ ¸ğµç ¼³¸íº¯¼ö¿Í Á¾¼Óº¯¼öµéÀº ¸ğµÎ ¼öÄ¡Çü(numeric)ÀÌ ¾î¾ß ÇÔ
+#´õ¹Ìº¯¼ö´Â ¹üÁÖÇü º¯¼ö¸¦ ¿¬¼ÓÇü º¯¼ö·Î º¯È¯ -> Á¤È®È÷ µûÁöÀÚ¸é ¿¬¼ÓÇü º¯¼ö"½º·´°Ô" ¸¸µç´Ù.
+# µû¶ó¼­ caret ÆĞÅ°Áö¸¦ È°¿ëÇÏ¿© ½±°Ô ÀÔ·ÂÇÇÃ³·Î »ç¿ëÇÒ dummyº¯¼ö ¸¸µé ¼ö ÀÖÀ½
+dummies<-dummyVars(use~.,shuttle,fullRank=T)
+dummies
+
+shuttle.2=as.data.frame(predict(dummies,newdata=shuttle))
+names(shuttle.2)
+head(shuttle.2)
+
+shuttle.2$use<-ifelse(shuttle$use=="auto",1,0)
+table(shuttle.2$use)
+
+
+set.seed(123) #³­¼ö »ı¼º
+trainIndex<-createDataPartition(shuttle.2$use,p=.7,list=FALSE) # ÈÆ·Ã µ¥ÀÌÅÍ : Å×½ºÆ® µ¥ÀÌÅÍ = 7:3
+shuttleTrain<-shuttle.2[trainIndex,]
+shuttleTest<-shuttle.2[-trainIndex,]
+
+# neuralnetÆĞÅ°Áö »ç¿ë
+
+n<-names(shuttleTrain)
+form<-as.formula(paste("use~",paste(n[!n %in% "use"],collapse = "+")))
+form
+# hidden : Àº´ĞÃşÀÇ °³¼ö¿Í ÇÑ Ãş¿¡ µé¾î ÀÖ´Â ´º·±ÀÇ °³¼ö·Î ÀÌ·ç¾îÁø º¤ÅÍ / ÃşÀÇ °³¼ö´Â 3°³±îÁö °¡´É, ±âº»°ªÀ¸·Î 1À» °¡Áü
+# act.fct : ÀÌ ÀÎÀÚ´Â È°¼ºÈ­ ÇÔ¼ö / ±âº»°ªÀÎ logisticÀ» »ç¿ëÇÏ°Å³ª, tanhÀ» ¼±ÅÃ ÇÒ ¼ö ÀÖÀ½
+# err.fct : ¿À·ù¸¦ °è»êÇÏ´Â µ¥ »ç¿ëÇÏ´Â ¹ÌºĞ°¡´É ÇÔ¼ö / ±âº»°ªÀ¸·Î sse¸¦ »ç¿ëÇÔ
+# linear.output : ³í¸®°ªÀ» °®´Â ÀÎÀÚ / È°¼ºÇÔ¼ö¸¦ ¹«½ÃÇÒ °ÍÀÎÁö ¸» °ÍÀÎÁö Á¤ÇÔ
+
+
+fit<-neuralnet(form,data=shuttleTrain,err.fct="ce",linear.output=FALSE)
+fit$result.matrix
+
+head(fit$generalized.weights[[1]])
+
+plot(fit)
+# À§ plot¿¡¼­ ³ëµå »çÀÌÀÇ ¿¬°á¼± À§¿¡ °¢ º¯¼ö¿Í 2ÀÇ °¡Áß°ªÀÌ ³ªÅ¸³ª ÀÖÀ½
+# ÀÏ¹İÈ­ °¡Áß°ª ¶ÇÇÑ plotÀ¸·Î °Ë»çÇÒ ¼ö ÀÖÀ½
+# vis.yes¿Í wind.tailÀ» ºñ±³ÇØ º¸¸é wind.tailÀÌ Àü¹İÀûÀ¸·Î ³·Àº °¡Áß°ª Áß ÇÏ³ªÀÓÀ» ¾Ë ¼ö ÀÖÀ½
+
+
+par(mfrow=c(1,2))
+gwplot(fit,selected.covariate="vis.yes")
+gwplot(fit,selected.covariate="wind.tail")
+# vis.yes´Â ºñ´ëÄª ºĞÆ÷ÀÌ¸ç, wind.tailÀº °í¸¥ ºĞÆ÷¸¦ º¸ÀÌ°í ¿¹Ãø·ÂÀÌ ¾øÀ½À» ¾Ë ¼ö ÀÖÀ½
+
+resultsTrain<-compute(fit,shuttleTrain[,1:10])
+predTrain<-resultsTrain$net.result # ¿¹Ãø°ª ¸ñ·Ï
+
+predTrain<-ifelse(predTrain>=0.5,1,0) # °á°ú´Â È®·ú°ªÀ¸·Î Ç¥½ÃµÇ¹Ç·Î ÀÌ¸¦ 0¶Ç´Â 1·Î º¯È¯ÇÏ°í ÀÌ°ÍÀ» Confusion Matrix ¸¸µê
+table(predTrain,shuttleTrain$use) # °á°ú¿¡¼­ 100%ÀÇ Á¤È®µµ¸¦ º¸ÀÓ (TP:76/ TN: 104)
+
+
+resultsTest<-compute(fit,shuttleTest[,1:10])
+predTest<-resultsTest$net.result
+predTest<-ifelse(predTest>=0.5,1,0)
+table(predTest,shuttleTest$use) # test¿¡¼­µµ °ÅÀÇ 100% (TP: 34/ TN: 40/ FN:1 )
+
+which(predTest==1 & shuttleTest$use==0) # test data¿¡¼­ ¾îµğ¿¡¼­ ÇãÀ§¾ç¼ºÀÌ ³ª¿Ô´ÂÁö È®ÀÎÇÏ°í ½ÍÀ» ¶§ which»ç¿ëÇÔ
 
 
 
-#4-2.Lasso : ê°€ì¤‘ì¹˜ì˜ ì ˆëŒ€ê°’ì˜ í•©ì„ ìµœì†Œ
-lasso.reg<-cv.glmnet(x= data.matrix(train[,-61]),y= data.matrix(train[,61]),family = "binomial", alpha = 1,nfold=10)
-plot(lasso.reg)
-lasso.reg$lambda.min
-  # cv error ìµœì†Œí™”í•˜ëŠ” lambdaê°’ = 0.0194945 (ê³¼ì í•©ì˜ ìœ„í—˜ ì¡´ì¬)
-  # test setì— ëŒ€í•œ model ì˜ˆì¸¡ (ìµœì†Œ lambdaê°’ ì´ìš©)
-pred.lasso<-predict(lasso.reg,data.matrix(test[,-61]),s= lasso.reg$lambda.min,type="class")
-table(Actual= test[,61],Predicted = pred.lasso)
-  ## (0,0)ê³¼ (1,1)ì´ ê°ê° 21, 23ì´ë¯€ë¡œ ridge regressionë³´ë‹¤ ì˜ˆì¸¡ì´ ì˜ ë˜ì§€ ì•ŠìŒ
-  # ëª¨ë¸ ì •í™•ë„ í™•ì¸
-confusionMatrix(pred.lasso,test[,61])
-  # Accuracy = 69.84%
-  # ridge regressionë³´ë‹¤ Accuracy ì‘ìŒ
-  
-## ê²°ë¡ 
-## Ridge Regressionì´ Sonar ë°ì´í„°ì— ê°€ì¥ ì í•©í•˜ë‹¤
+install.packages('devtools')
+devtools::install_github("rstudio/keras") 
+library(keras)
+?dataset_cifar10 #CIFAR10ÀÌ¶õ
+cifar<-dataset_cifar10()
+train_x<-cifar$train$x/255 # DATA ÇĞ½À
 
-install.packages("e1071")
-install.packages("lattice")
-install.packages("ggplot2")
-library(e1071)
-library(lattice)
-library(ggplot2)
+train_y<-to_categorical(cifar$train$y,num_classes = 10) #¿øÇÖ ÀÎÄÚµù, 0,1 ¹ÙÀÌ³Ê¸®·Î Ç¥Çö
+
+test_x<-cifar$test$x/255 #DATA test
+test_y<-to_categorical(cifar$test$y,num_classes=10) 
+
+
+dim(train_x) # Â÷¿ø ÇĞÀÎ
+cat("No of training samples\t",dim(train_x)[[1]],"\tNo of test samples\t",dim(test_x)[[1]])
+
+#¸ğµ¨ ¼±¾ğ
+model<-keras_model_sequential()
+
+#¸ğµ¨ ±¸Çö
+model %>% 
+ #Ã¹ 2D convolution
+
+ layer_conv_2d(filter=32,kernel_size=c(3,3),padding="same", input_shape=c(32,32,3) ) %>% 
+ layer_activation("relu") %>% 
+
+ #2¹øÂ° 2D convolution
+
+ layer_conv_2d(filter=32 ,kernel_size=c(3,3)) %>% layer_activation("relu") %>%
+
+
+ #pooling layer convolutionÀ» ÅëÇØ µµÃâÇÑ °ªÀ» ÃßÃâ -> Â÷¿ø/º¹ÀÛµµ¸¦ ÁÙ¿©ÁÖ´Â È¿°ú
+layer_max_pooling_2d(pool_size=c(2,2)) %>% 
+
+ #overfittingÀ» ÇÇÇÏ±â À§ÇØ dropout
+ layer_dropout(0.25) %>%
+ layer_conv_2d(filter=32 , kernel_size=c(3,3),padding="same") %>% layer_activation("relu") %>% layer_conv_2d(filter=32,kernel_size=c(3,3) ) %>% layer_activation("relu") %>% 
+ layer_max_pooling_2d(pool_size=c(2,2)) %>% 
+ layer_dropout(0.25) %>%
+
+ #flatten the input 
+ layer_flatten() %>% 
+ layer_dense(512) %>% 
+ #reflu activagtion
+ layer_activation("relu") %>% 
+ layer_dropout(0.5) %>% 
+ #output layer-10 classes-10 units 
+ layer_dense(10) %>% 
+ #ÃÖÁ¾ÀûÀ¸·Î ºñ¼±Çü activation function softmax -> nonlinearlity ¶§¹®
+layer_activation("softmax") 
+
+#for computing Probabilities of classes-"logit(log probabilities)
+
+#Optimizer¼±ÅÃ -ADAM-Adaptive Momentum Estimation
+opt<-optimizer_adam( lr= 0.0001 , decay = 1e-6 )
+#lr-ÇĞ½À·ü , decay - ¸Å ÀÌÅÍ·¹ÀÌ¼Ç º° ÇĞ½À·ü decay
+
+model %>%
+ compile(loss="categorical_crossentropy",
+ optimizer=opt,metrics = "accuracy")
+
+#½Å°æ¸Á ±¸Á¶
+summary(model)
+
+
+# MODEL ÇĞ½À
+data_augmentation <- TRUE 
+if(!data_augmentation) { 
+ model %>% fit( train_x,train_y ,batch_size=32,
+ epochs=80,validation_data = list(test_x, test_y),
+ shuffle=TRUE)
+}else {
+ #ÀÌ¹ÌÁö »ı¼º
+
+gen_images <- image_data_generator(featurewise_center = TRUE,
+ featurewise_std_normalization = TRUE,
+ rotation_range = 20,
+ width_shift_range = 0.30,
+ height_shift_range = 0.30,
+ horizontal_flip = TRUE )
+
+ gen_images %>% fit_image_data_generator(train_x)
+ model %>% fit_generator(
+ flow_images_from_data(train_x, train_y,gen_images,
+ batch_size=32,save_to_dir="~/Desktop/CIFAR"),
+ steps_per_epoch=as.integer(50000/32),epochs = 80,
+ validation_data = list(test_x, test_y) )
+} 
